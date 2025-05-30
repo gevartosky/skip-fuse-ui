@@ -207,8 +207,11 @@ extension View {
     nonisolated public func navigationDestination<D, C>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> C) -> some View where D : Hashable, C : View {
         return ModifierView(target: self) {
             let bridgedDestination: (Any) -> any SkipUI.View = {
-                let data = ($0 as! SwiftHashable).base as! D
-                return destination(data).Java_viewOrEmpty
+                if let data = ($0 as! SwiftHashable).base as? D {
+                    return destination(data).Java_viewOrEmpty
+                } else {
+                    return SkipUI.EmptyView()
+                }
             }
             return $0.Java_viewOrEmpty.navigationDestination(destinationKey: String(describing: data), bridgedDestination: bridgedDestination)
         }
